@@ -21,9 +21,10 @@ classdef DataProcessor < handle
         stdFilter = [];
         signals = [];
         lastSignalEdgeIdx = -1;
-        maxSamplesToTakeTemporalMean = 200;
+        maxSamplesToTakeTemporalMean = 1000;
         offsetAfterMaxSamplesToTakeTemporalMean = 10;
         segmentInds = [];
+        segmentLabels = [];
         
         last_event_ind = 1;
         second_last_event_ind = 1;
@@ -84,6 +85,7 @@ classdef DataProcessor < handle
                 
                 % classify
                 obj.repDetected = predict(obj.SVMModel, obj.featuresForLastSegment);
+                obj.segmentLabels = [obj.segmentLabels; obj.repDetected(end)];
             end
             
             obj.firstStep = 0;
@@ -96,21 +98,33 @@ classdef DataProcessor < handle
             plot(obj.timeSinceLastSegment, ...
                 obj.pitchSinceLastSegment .* 180.0 ./ pi, 'Color', 'blue', 'LineWidth', 1.5)
             plot(obj.timeSinceLastSegment, ...
-                obj.rollSinceLastSegment .* 180.0 ./ pi, 'Color', 'green', 'LineWidth', 1.5)
-            title('Exercise Repetition Detection', 'FontWeight', 'bold')
+                obj.rollSinceLastSegment .* 180.0 ./ pi, 'Color', 'magenta', 'LineWidth', 1.5)
+%             title('Exercise Repetition Detection', 'FontWeight', 'bold')
             xlabel('Time (seconds)', 'FontWeight', 'bold')
             xlim([obj.timeSinceLastSegment(1), obj.timeSinceLastSegment(end)])
-            ylabel('Angle (degrees)', 'FontWeight', 'bold')
+            ylabel('Angle of IMU with Respect to Gravity (degrees)', 'FontWeight', 'bold')
             sigPitch = obj.pitchSinceLastSegment .* 180.0 ./ pi;
             plot(obj.timeSinceLastSegment(obj.signals~=0), ...
-                sigPitch(obj.signals~=0),'r*','LineWidth',1.5);
+                sigPitch(obj.signals~=0),'k*','LineWidth',1.5);
+            
+            xlim([18, 150]);
+            
             for i = 1:size(obj.segmentInds,1)
-                rectangle('Position', [obj.timeSinceLastSegment(obj.segmentInds(i,1)),...
+                
+                if(obj.segmentLabels(i)) % rep detected
+                    rectangle('Position', [obj.timeSinceLastSegment(obj.segmentInds(i,1)),...
                     min(obj.pitchSinceLastSegment)*180/pi, ...
                     obj.timeSinceLastSegment(obj.segmentInds(i,2)) - obj.timeSinceLastSegment(obj.segmentInds(i,1)), ...
-                    max(obj.pitchSinceLastSegment)*180/pi - min(obj.pitchSinceLastSegment)*180/pi], 'EdgeColor', 'magenta');
+                    max(obj.pitchSinceLastSegment)*180/pi - min(obj.pitchSinceLastSegment)*180/pi], 'EdgeColor', 'green');
+                else
+                    rectangle('Position', [obj.timeSinceLastSegment(obj.segmentInds(i,1)),...
+                    min(obj.pitchSinceLastSegment)*180/pi, ...
+                    obj.timeSinceLastSegment(obj.segmentInds(i,2)) - obj.timeSinceLastSegment(obj.segmentInds(i,1)), ...
+                    max(obj.pitchSinceLastSegment)*180/pi - min(obj.pitchSinceLastSegment)*180/pi], 'EdgeColor', 'red');
+                end
+ 
             end
-            legend('Pitch', 'Roll', 'Peaks', 'Segments');
+            legend('Pitch', 'Roll', 'Peaks');
             
         end
     end
