@@ -11,6 +11,9 @@ Thumbs.db
 # Matlab specific
 *.asv
 
+# PyCharm specific
+.idea
+
 # Project Specific
 processing/results/
 database/mobitrack/env/
