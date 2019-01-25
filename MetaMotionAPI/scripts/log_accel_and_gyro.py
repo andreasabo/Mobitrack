@@ -10,7 +10,7 @@ import os
 
 
 seconds_to_stream = 100
-filename = "ll_exercise_01.txt"
+filename = "ll_rest_01.txt"
 data_folder_name = "../data/MetaMotion"
 
 
