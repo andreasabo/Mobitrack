@@ -5,6 +5,7 @@ classdef PostProcessor < handle
         all_labels = [];         % Stream of all classifier labels (as seen by this class)
         segments = [];          % Segments as seen from this class
         abscount;               % absolute count of samples processed
+        all_pitch = [];
         
         max_length_of_turning_point = 2.5;
         max_samples_in_section;
@@ -27,6 +28,7 @@ classdef PostProcessor < handle
         
         doneSection = 0;
         segmentData = struct();
+        corr_for_merge_segments = 0.80; % If the magnitude of two adjacent segments is greater than this, they will be merged
         
     end
     
@@ -46,7 +48,8 @@ classdef PostProcessor < handle
         end
         
         
-        function [obj] = step(obj, new_label)
+        function [obj] = step(obj, new_label, new_pitch)
+            obj.all_pitch = [obj.all_pitch, new_pitch];
             % initialize current section/segment
             if(obj.start == 0) % want to start at a p1 point
                 if(new_label ~= 1)
@@ -159,6 +162,57 @@ classdef PostProcessor < handle
         end
         
         
+        function [obj] = fixSegments(obj)
+            % use the pitch signal to combine segments if necessary
+            
+            % Step 1: remove all segments that have no length
+            i = 1;
+            while i <= size(obj.segments,1)
+                if (obj.segments(i, 1) == obj.segments(i, 2))
+                    obj.segments(i, :) = [];
+                    continue;
+                end
+                i = i + 1;
+            end
+            
+            % Step 2: Split up any segments with overlap
+            i = 2;
+            while i <= size(obj.segments,1)
+                if (obj.segments(i, 2) == obj.segments(i-1, 2))
+                    obj.segments(i-1, 2) = obj.segments(i, 1);
+                end
+                i = i + 1;
+            end
+            
+            % Step 3: Combine segments
+
+            last_small_seg_ind = -1;
+            i = 1;
+            while i <= size(obj.segments,1)
+                seg_size = obj.segments(i, 2) - obj.segments(i, 1) + 1;
+                x_labels = 1:seg_size;
+                y_labels = obj.all_pitch(obj.segments(i, 1): obj.segments(i, 2));
+               
+                rho = corrcoef(x_labels, y_labels);
+                
+                if(abs(rho(1,2)) > obj.corr_for_merge_segments)
+                    if (last_small_seg_ind == (i -1)) % if the last segment was also a half
+                        % combine segments
+                        obj.segments(last_small_seg_ind, 2) = obj.segments(i, 2);
+                        obj.segments(i, :) = [];
+                        continue;
+                    end
+                    
+                    last_small_seg_ind = i;
+                end
+                i = i + 1;
+            end
+            
+            
+            
+        end
+        
+        
         function [obj] = checkIfEndOfSegment(obj)
             
             if(~obj.segmentData.haveFirstSection)
@@ -189,9 +243,7 @@ classdef PostProcessor < handle
             obj.segmentData.firstSectionMiddle = newMiddle;
             obj.segmentData.haveSecondSection = 0;
            
-           
-            
-            
+          
         end
         
     end

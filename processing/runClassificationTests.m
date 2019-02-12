@@ -1,4 +1,4 @@
-function [] = runClassificationTests( svmOptions, trainingData, testingData, supplementaryInfo, window_size, dataForVisualization, dataForVisualization_formatted )
+function [] = runClassificationTests( svmOptions, trainingData, testingData, supplementaryInfo, window_size, dataForVisualization, dataForVisualization_formatted, dimReduct)
 % Run the suite of classification tests according to the SVM parameters
 % defined by the calling function.
 %
@@ -92,7 +92,7 @@ for standardID = 1:length(svmOptions.standardize)
                         
 
                         % Save the classifier performance results to a CSV
-                        commonName = saveClassifierPerformanceToCSV(currentSVMOptions, trainCP, testCP, supplementaryInfo.outputCSV, supplementaryInfo.filepaths.full, timeStruct, mdl); 
+                        commonName = saveClassifierPerformanceToCSV(currentSVMOptions, trainCP, testCP, supplementaryInfo.outputCSV, supplementaryInfo.filepaths.full, timeStruct, mdl, dimReduct); 
 
                         % Test on the visual data 
                         testAndPlotVisualResults(supplementaryInfo.filepaths.full, commonName, mdl, dataForVisualization, dataForVisualization_formatted, window_size )

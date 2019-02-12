@@ -1,4 +1,4 @@
-function [common_name] = saveClassifierPerformanceToCSV(currentSVMOptions, trainCP, testCP, filename, fullFilePath, timeStruct, mdl)
+function [common_name] = saveClassifierPerformanceToCSV(currentSVMOptions, trainCP, testCP, filename, fullFilePath, timeStruct, mdl, dimReduct)
 % This function accepts the current SVM parameters and the classifier
 % performance for the training and testing sets and then saves the
 % performance statistics to a CSV.
@@ -59,10 +59,10 @@ f = fopen(filename, 'a'); % append to file
 fprintf(f, allData);
 fclose(f);
 
-% Save model
+% Save model and dim reduction
 common_name = sprintf('%f, %s', currentSVMOptions.window_size, classifierOptions);
 saveName = strcat(fullFilePath, filesep, common_name, '.mat');
-save(saveName, 'mdl');
+save(saveName, 'mdl', 'dimReduct');
 
 end
 

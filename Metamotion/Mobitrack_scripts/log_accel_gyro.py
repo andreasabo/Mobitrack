@@ -10,7 +10,7 @@ import os
 
 
 seconds_to_stream = 60
-filename = "rest_01.txt"
+filename = "Feb6_250dps_la2.txt"
 data_folder_name = "../../data/MetaMotion"
 
 
@@ -52,6 +52,7 @@ class State:
         libmetawear.mbl_mw_datasignal_subscribe(self.processor, None, self.callback)
 
     def start(self):
+        libmetawear.mbl_mw_gyro_bmi160_set_range(self.device.board, 250)
         libmetawear.mbl_mw_gyro_bmi160_enable_rotation_sampling(self.device.board)
         libmetawear.mbl_mw_acc_enable_acceleration_sampling(self.device.board)
 

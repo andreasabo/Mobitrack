@@ -1,4 +1,4 @@
-function [pitch_and_labels] = loadAllData(path_to_data)
+function [pitch_and_labels] = loadAllData(path_to_data, shift_needed)
 cd(path_to_data)
 % Load all files
 files = dir('data*.txt')
@@ -17,10 +17,17 @@ for i = 1:length(files)
         labels(segs(j,1):segs(j,2)) = 1;
     end 
     
-    [t, roll, pitch] = preprocessData(data);
+    [t, roll, pitch_processed] = preprocessData(data);
     
-    pitch_and_labels(i).pitch = pitch;
-    pitch_and_labels(i).labels = labels;
+    pitch_and_labels(i).pitch = pitch_processed;
+    if shift_needed
+        % Labels got shifted by 50:
+        shift_amount = 25;
+      pitch_and_labels(i).labels = [labels(shift_amount+1:end), zeros(1,shift_amount)];
+
+    else
+        pitch_and_labels(i).labels = labels;
+    end
     
     
 %     figure, plot(t, pitch), title('Off-line processing pitch'), hold on,

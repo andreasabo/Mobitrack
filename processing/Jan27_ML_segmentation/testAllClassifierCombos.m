@@ -1,4 +1,4 @@
-function [outputArg1,outputArg2] = testAllClassifierCombos(allData, allLabels, window_size, dataForVisualization, dataForVisualizationFormated)
+function [outputArg1,outputArg2] = testAllClassifierCombos(allData, allLabels, window_size, dataForVisualization, dataForVisualizationFormated, dimReduct)
     % Divide data into testing and training
     s = RandStream('mlfg6331_64');
     testing_fraction = 0.2;
@@ -28,8 +28,8 @@ function [outputArg1,outputArg2] = testAllClassifierCombos(allData, allLabels, w
 
     % Set the location where the results should be saved
     filepaths.root = 'D:\OneDrive\School\4A\BME 461\Mobitrack\data\';
-    subFolder1 = 'Jan28ClassifierResults\';
-    subFolder2 = 'short_test';
+    subFolder1 = 'Feb6ClassifierResults\';
+    subFolder2 = 'test';
 
     %% Load in the supplementary information
 
@@ -46,7 +46,7 @@ function [outputArg1,outputArg2] = testAllClassifierCombos(allData, allLabels, w
     
     
     tic
-    runClassificationTests(svmOptions, trainingData, testingData, supplementaryInfo, window_size, dataForVisualization, dataForVisualizationFormated);
+    runClassificationTests(svmOptions, trainingData, testingData, supplementaryInfo, window_size, dataForVisualization, dataForVisualizationFormated, dimReduct);
     toc
     
 end

@@ -4,17 +4,17 @@ if nargin < 2
     createPlots = 0;
 end
 
-t = data.time - data.time(1);
+t = (data.time - data.time(1))/1000;
 Ax = data.ax; Ay = data.ay; Az = data.az;
 Gx = data.gx; Gy = data.gy; Gz = data.gz;
 dt = diff(t);
 
 % Pre-processing: remove high frequency component
-fc = exp(-1); % normalized frequency
-fs = 1/mean(dt); % sampling frequency [Hz]
+% fc = exp(-1); % normalized frequency
+% fs = 1/mean(dt); % sampling frequency [Hz]
 
 % Butterworth filter
-[b,a] = butter(1, 0.1);
+% [b,a] = butter(1, 0.1);
 
 % Moving average filter
 % filter_size = 50;
@@ -48,6 +48,7 @@ for i = 1:length(Ax)
         Gz_out = [Gz_out; mean(Gz(i-window_size:i))];
     end
 end
+
 Ax = Ax_out;
 Ay = Ay_out;
 Az = Az_out;
@@ -61,10 +62,13 @@ Gz = Gz_out;
 g = 9.81; % gravitational constant (m/s^2)
 A_sens = 16384; % for acceleration limit of 2g
 G_sens = 131; % for angular velocity limit of 250 degrees / second
+A_sens = 1; % for acceleration limit of 2g
+G_sens = 1; % for angular velocity limit of 250 degrees / second
 Ax = Ax / A_sens * g; Ay = Ay / A_sens * g; Az = Az / A_sens * g; % m/s^2
 Gx = Gx / G_sens; Gy = Gy / G_sens; Gz = Gz / G_sens; % degrees/s
-Gx_rad = Gx * pi / 180.0; Gy_rad = Gy * pi / 180.0; Gz_rad = Gz * pi / 180.0; % rad/s
+% Gx_rad = Gx * pi / 180.0; Gy_rad = Gy * pi / 180.0; Gz_rad = Gz * pi / 180.0; % rad/s
 
+Gx_rad = Gx; Gy_rad = Gy; Gz_rad = Gz; % deg/s
 
 
 %% Estimation based on accelerometer or gyroscope only
@@ -72,8 +76,11 @@ Gx_rad = Gx * pi / 180.0; Gy_rad = Gy * pi / 180.0; Gz_rad = Gz * pi / 180.0; % 
 epsilon = 0.1; % magnitude threshold from actual g
 
 % Accelerometer only
-roll_est_acc  = atan2(Ay, sqrt(Ax .^ 2 + Az .^ 2)); % range [-90, 90]
-pitch_est_acc = atan2(Ax, sqrt(Ay .^ 2 + Az .^ 2)); % range [-90, 90]
+roll_est_acc  = atan2(Ay, sqrt(Ax .^ 2 + Az .^ 2)); % range [-pi, pi]
+pitch_est_acc = atan2(Ax, sqrt(Ay .^ 2 + Az .^ 2)); % range [-pi, pi]
+
+roll_est_acc = rad2deg(roll_est_acc);
+pitch_est_acc = rad2deg(pitch_est_acc);
 
 % Gyroscope only
 roll_est_gyr = zeros(1, length(t));
@@ -84,6 +91,7 @@ for i = 2:length(t)
        yaw_est_gyr(i) = yaw_est_gyr(i-1);
        roll_est_gyr(i) = roll_est_gyr(i-1);
        pitch_est_gyr(i) = pitch_est_gyr(i-1);
+       
    else
        roll_est_gyr(i) = roll_est_gyr(i-1) + dt(i-1) * Gx_rad(i);
        pitch_est_gyr(i) = pitch_est_gyr(i-1) + dt(i-1) * Gy_rad(i);
@@ -108,24 +116,24 @@ for i=2:length(t)
 end
 
 %% Convert all estimates to degrees and save
-roll_est_acc = roll_est_acc * 180.0 / pi; pitch_est_acc = pitch_est_acc * 180.0 / pi;
-roll_est_gyr = roll_est_gyr * 180.0 / pi; pitch_est_gyr = pitch_est_gyr * 180.0 / pi;
-yaw_est_gyr = yaw_est_gyr * 180.0 / pi;
-roll_est_comp = roll_est_comp * 180.0 / pi; pitch_est_comp = pitch_est_comp * 180.0 / pi;
+% roll_est_acc = roll_est_acc * 180.0 / pi; pitch_est_acc = pitch_est_acc * 180.0 / pi;
+% roll_est_gyr = roll_est_gyr * 180.0 / pi; pitch_est_gyr = pitch_est_gyr * 180.0 / pi;
+% yaw_est_gyr = yaw_est_gyr * 180.0 / pi;
+% roll_est_comp = roll_est_comp * 180.0 / pi; pitch_est_comp = pitch_est_comp * 180.0 / pi;
 %save (strcat(filename, '_comp.mat'), 't', 'roll_est_comp', 'pitch_est_comp')
 
 if (createPlots)
     
     % Plot raw data
     % Acceleration
-    figure, plot(t, [Ax; Ay; Az])
+    figure, plot(t, [Ax, Ay, Az])
     title('Acceleration','fontweight','bold')
     legend('x','y','z')
     xlabel('Time (s)');
     ylabel('Acceleration (m/s^2)');
 
     % Angular Velocity
-    figure, plot(t, [Gx; Gy; Gz])
+    figure, plot(t, [Gx, Gy, Gz])
     title('Angular Velocity','fontweight','bold')
     legend('x','y','z')
     xlabel('Time (s)');
